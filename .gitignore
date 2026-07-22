@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.log
+test_screen.png
+desktop_test.png
+real_test.png
