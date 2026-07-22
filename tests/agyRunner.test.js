@@ -17,7 +17,7 @@ test('AgyRunner initializes with CWD and Model', () => {
 test('AgyRunner default constructor parameters', () => {
   const runner = new AgyRunner();
   assert.strictEqual(runner.getCwd(), process.cwd());
-  assert.strictEqual(runner.getModel(), 'gemini-2.5-pro');
+  assert.strictEqual(runner.getModel(), 'Gemini 3.6 Flash (High)');
   assert.strictEqual(runner.isRunning(), false);
 });
 

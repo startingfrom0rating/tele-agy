@@ -1,10 +1,15 @@
 {
   "name": "tele-agy",
   "version": "1.0.0",
+  "description": "Remote Telegram bridge for the Google Antigravity CLI (agy)",
   "type": "module",
   "main": "src/index.js",
+  "bin": {
+    "tele-agy": "src/index.js"
+  },
   "scripts": {
     "start": "node src/index.js",
+    "setup": "node scripts/setup.js",
     "test": "node --test"
   },
   "dependencies": {
