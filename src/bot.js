@@ -3,7 +3,7 @@ import path from 'node:path';
 import { Bot, InlineKeyboard, InputFile } from 'grammy';
 import { createAuthMiddleware } from './auth.js';
 import { captureAllScreenshots } from './screenshot.js';
-import { chunkText } from './utils.js';
+import { chunkText, parseModelIntent } from './utils.js';
 
 export function getProjectFolders(baseDir) {
   if (!fs.existsSync(baseDir)) return [];
@@ -293,6 +293,13 @@ Select from all 11 models below or type \`/model <name>\`:`, {
   bot.on('message:text', async (ctx) => {
     const promptText = ctx.message.text;
     if (promptText.startsWith('/')) return; // Ignore unhandled commands
+
+    // Natural Language Model Switching Check
+    const matchedModel = parseModelIntent(promptText, ALL_MODELS);
+    if (matchedModel) {
+      agyRunner.setModel(matchedModel);
+      return ctx.reply(`✅ Active model changed to: \`${matchedModel}\``, { parse_mode: 'Markdown' });
+    }
 
     if (agyRunner.isRunning()) {
       return ctx.reply('⚠️ AGY process is already running a task. Send /stop to terminate it first.');
