@@ -80,6 +80,7 @@ echo DEFAULT_MODEL="%MODEL%"
 
 echo.
 echo   Configuration saved to .env
+node scripts/enable-autostart.js
 echo.
 echo   =============================
 echo     Tele-AGY installed!

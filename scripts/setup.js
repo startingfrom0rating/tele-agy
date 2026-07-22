@@ -82,6 +82,12 @@ async function main() {
 
   console.log('');
   console.log('✅ Configuration saved to .env');
+
+  // Enable Windows User-Session Startup shortcut
+  if (process.platform === 'win32') {
+    const { enableWindowsAutoStart } = await import('./enable-autostart.js');
+    enableWindowsAutoStart();
+  }
   console.log('');
   console.log('┌─────────────────────────────────────────┐');
   console.log('│  Tele-AGY is ready!                     │');
