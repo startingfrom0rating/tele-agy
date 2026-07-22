@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Bot, InlineKeyboard, InputFile } from 'grammy';
 import { createAuthMiddleware } from './auth.js';
-import { captureScreenshot } from './screenshot.js';
+import { captureAllScreenshots } from './screenshot.js';
 import { chunkText } from './utils.js';
 
 export function getProjectFolders(baseDir) {
@@ -253,11 +253,27 @@ Select from all 11 models below or type \`/model <name>\`:`, {
 
   // /screenshot
   bot.command('screenshot', async (ctx) => {
-    const statusMsg = await ctx.reply('📸 Capturing screen...');
+    const statusMsg = await ctx.reply('📸 Capturing desktop screens...');
     try {
-      const snapPath = await captureScreenshot();
-      await ctx.replyWithPhoto(new InputFile(snapPath), { caption: '🖥 Desktop Screenshot (All Monitors)' });
-      fs.unlinkSync(snapPath);
+      const snaps = await captureAllScreenshots();
+      
+      if (snaps.length === 1) {
+        await ctx.replyWithPhoto(new InputFile(snaps[0].path), {
+          caption: `🖥 Desktop Screenshot (${snaps[0].name} - ${snaps[0].width}x${snaps[0].height})`
+        });
+        try { fs.unlinkSync(snaps[0].path); } catch (e) {}
+      } else {
+        const mediaGroup = snaps.map((s, idx) => ({
+          type: 'photo',
+          media: new InputFile(s.path),
+          caption: `🖥 Display ${idx + 1}: ${s.name} (${s.width}x${s.height})`
+        }));
+        await ctx.replyWithMediaGroup(mediaGroup);
+        snaps.forEach(s => {
+          try { fs.unlinkSync(s.path); } catch (e) {}
+        });
+      }
+      
       await ctx.api.deleteMessage(ctx.chat.id, statusMsg.message_id).catch(() => {});
     } catch (err) {
       await ctx.reply(`❌ Screenshot error: ${err.message}`);

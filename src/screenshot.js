@@ -3,20 +3,41 @@ import os from 'node:os';
 import fs from 'node:fs';
 import screenshotDesktop from 'screenshot-desktop';
 
-export async function captureScreenshot(outPath) {
-  const targetPath = outPath || path.join(os.tmpdir(), `tele_agy_snap_${Date.now()}.png`);
-  
+export async function captureAllScreenshots() {
   try {
-    const filename = await screenshotDesktop({ filename: targetPath });
-    if (!fs.existsSync(filename)) {
-      throw new Error('Screenshot file was not created.');
+    const displays = await screenshotDesktop.listDisplays();
+    if (displays && displays.length > 0) {
+      const results = [];
+      for (let i = 0; i < displays.length; i++) {
+        const d = displays[i];
+        const targetPath = path.join(os.tmpdir(), `tele_agy_snap_${i}_${Date.now()}.png`);
+        try {
+          const filename = await screenshotDesktop({ screen: d.id, filename: targetPath });
+          if (fs.existsSync(filename) && fs.statSync(filename).size > 0) {
+            results.push({
+              path: filename,
+              name: d.name || `Display ${i + 1}`,
+              width: d.width || 1920,
+              height: d.height || 1080
+            });
+          }
+        } catch (e) {
+          // Continue to next display if individual capture fails
+        }
+      }
+      if (results.length > 0) return results;
     }
-    const stats = fs.statSync(filename);
-    if (stats.size < 1000) {
-      throw new Error('Display returned an empty black frame due to background session isolation.');
-    }
-    return filename;
-  } catch (err) {
-    throw new Error(`Screenshot capture failed: ${err.message}`);
+  } catch (e) {
+    // Ignore listDisplays failure and fallback
   }
+
+  // Fallback if listDisplays is not supported or returns empty
+  const targetPath = path.join(os.tmpdir(), `tele_agy_snap_${Date.now()}.png`);
+  const filename = await screenshotDesktop({ filename: targetPath });
+  return [{ path: filename, name: 'Primary Display', width: 1920, height: 1080 }];
+}
+
+export async function captureScreenshot(outPath) {
+  const snaps = await captureAllScreenshots();
+  return snaps[0].path;
 }
